@@ -39,14 +39,9 @@
 </head>
 <body>
     <div class="quiz-container">
-        <h2 id="question-text">Fraction Quiz</h2>
+        <h2 id="question-text">Fraction Circle Quiz</h2>
 
-        <svg id="circle-visual" width="300" height="300" viewBox="0 0 300 300">
-            <path class="segment" d="M150,150 L150,5 A145,145 0 0,1 285,150 L150,150 Z" fill="#e0e0e0" stroke="white" stroke-width="3"/>
-            <path class="segment" d="M150,150 L285,150 A145,145 0 0,1 150,295 L150,150 Z" fill="#e0e0e0" stroke="white" stroke-width="3"/>
-            <path class="segment" d="M150,150 L150,295 A145,145 0 0,1 15,150 L150,150 Z" fill="#e0e0e0" stroke="white" stroke-width="3"/>
-            <path class="segment" d="M150,150 L15,150 A145,145 0 0,1 150,5 L150,150 Z" fill="#e0e0e0" stroke="white" stroke-width="3"/>
-        </svg>
+        <svg id="circle-visual" width="300" height="300" viewBox="0 0 300 300"></svg>
 
         <div id="feedback" class="text-center"></div>
         <button id="check-btn" class="btn btn-success mt-3" onclick="checkAnswer()">Check Answer</button>
@@ -57,32 +52,93 @@
         const questions = [
             {
                 type: "select",
-                question: "Select 2/4 of the circle",
-                correctSegments: 2
+                question: "Select 1/4 of the circle",
+                totalParts: 4,
+                correctParts: 1
             },
             {
                 type: "select",
-                question: "Select 1/4 of the circle",
-                correctSegments: 1
+                question: "Select 2/4 of the circle",
+                totalParts: 4,
+                correctParts: 2
             },
             {
                 type: "select",
                 question: "Select 3/4 of the circle",
-                correctSegments: 3
+                totalParts: 4,
+                correctParts: 3
             },
             {
                 type: "select",
-                question: "Select 4/4 (the whole) of the circle",
-                correctSegments: 4
+                question: "Select 4/4 of the circle",
+                totalParts: 4,
+                correctParts: 4
+            },
+            {
+                type: "select",
+                question: "Select 2/5 of the circle",
+                totalParts: 5,
+                correctParts: 2
+            },
+            {
+                type: "select",
+                question: "Select 4/7 of the circle",
+                totalParts: 7,
+                correctParts: 4
+            },
+            {
+                type: "select",
+                question: "Select 6/8 of the circle",
+                totalParts: 8,
+                correctParts: 6
             }
         ];
 
         let currentQuestionIndex = 0;
-        const segments = document.querySelectorAll('.segment');
+        const circleVisual = document.getElementById('circle-visual');
         const questionText = document.getElementById('question-text');
         const feedbackElement = document.getElementById('feedback');
         const checkButton = document.getElementById('check-btn');
         const nextButton = document.getElementById('next-btn');
+
+        function createCircleSegments(totalParts) {
+            circleVisual.innerHTML = ''; // Clear previous segments
+            const centerX = 150;
+            const centerY = 150;
+            const radius = 145;
+            
+            for (let i = 0; i < totalParts; i++) {
+                const startAngle = (i * 2 * Math.PI) / totalParts - Math.PI / 2;
+                const endAngle = ((i + 1) * 2 * Math.PI) / totalParts - Math.PI / 2;
+                
+                const x1 = centerX + radius * Math.cos(startAngle);
+                const y1 = centerY + radius * Math.sin(startAngle);
+                const x2 = centerX + radius * Math.cos(endAngle);
+                const y2 = centerY + radius * Math.sin(endAngle);
+                
+                const largeArcFlag = endAngle - startAngle > Math.PI ? 1 : 0;
+                
+                const pathData = `
+                    M ${centerX} ${centerY}
+                    L ${x1} ${y1}
+                    A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}
+                    Z
+                `;
+                
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path.setAttribute('d', pathData);
+                path.setAttribute('fill', '#e0e0e0');
+                path.setAttribute('stroke', 'white');
+                path.setAttribute('stroke-width', '3');
+                path.classList.add('segment');
+                
+                path.addEventListener('click', () => {
+                    path.classList.toggle('selected');
+                });
+                
+                circleVisual.appendChild(path);
+            }
+        }
 
         function loadQuestion(index) {
             currentQuestionIndex = index;
@@ -92,14 +148,16 @@
             feedbackElement.textContent = '';
             nextButton.style.display = 'none';
             checkButton.style.display = 'block';
-            segments.forEach(segment => segment.classList.remove('selected'));
+            
+            createCircleSegments(question.totalParts);
         }
 
         function checkAnswer() {
             const question = questions[currentQuestionIndex];
+            const segments = document.querySelectorAll('.segment');
             const selectedSegments = Array.from(segments).filter(segment => segment.classList.contains('selected')).length;
 
-            if (selectedSegments === question.correctSegments) {
+            if (selectedSegments === question.correctParts) {
                 feedbackElement.textContent = "Correct!";
                 feedbackElement.style.color = 'green';
                 nextButton.style.display = 'block';
@@ -120,12 +178,6 @@
                 nextButton.style.display = "none";
             }
         }
-
-        segments.forEach(segment => {
-            segment.addEventListener('click', () => {
-                segment.classList.toggle('selected');
-            });
-        });
 
         loadQuestion(0);
     </script>
